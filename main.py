@@ -36,7 +36,6 @@ player_move_left = [-4, 0]
 
 # Основний цикл гри
 
-
 def crate_enemy():
     enemy_size = (10, 10)
     enemy_original = pygame.image.load("enemy.png").convert_alpha()
