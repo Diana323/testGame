@@ -25,30 +25,35 @@ bg_X2 = bg.get_width()
 bg_move = 3
 
 player_size = (20, 20)
-player = pygame.Surface(player_size)
-player.fill(COLOR_WHITE)
+player = pygame.image.load("player.png").convert_alpha()  # pygame.Surface(player_size)
+# player.fill(COLOR_WHITE)
 player_rect = player.get_rect()
-player_move_down = [0, 1]
-player_move_up = [0, -1]
-player_move_right = [1, 0]
-player_move_left = [-1, 0]
+player_rect = pygame.Rect(100, HEIGHT / 2 - player.get_height() / 2, *player.get_size())
+player_move_down = [0, 4]
+player_move_up = [0, -4]
+player_move_right = [4, 0]
+player_move_left = [-4, 0]
 
 
 def crate_enemy():
-    enemy_size = (30, 30)
-    enemy = pygame.Surface(enemy_size)
-    enemy.fill(COLOR_BLUE)
-    enemy_rect = pygame.Rect(WIDTH, random.randint(0, HEIGHT), *enemy_size)
-    enemy_move = [random.randint(-6, -1), 0]
+    enemy_size = (10, 10)
+    enemy_original = pygame.image.load("enemy.png").convert_alpha()
+    enemy = pygame.transform.scale(
+        enemy_original,
+        (enemy_original.get_width() / 2, enemy_original.get_height() / 2),
+    )
+    enemy_rect = pygame.Rect(
+        WIDTH + 200, random.randint(200, HEIGHT - 200), *enemy_size
+    )
+    enemy_move = [random.randint(-8, -4), 0]
     return [enemy, enemy_rect, enemy_move]
 
 
 def create_bonus():
-    bonus_size = (20, 20)
-    bonus = pygame.Surface(bonus_size)
-    bonus.fill(COLOR_YELLOW)
+    bonus_size = (10, 10)
+    bonus = pygame.image.load("bonus.png").convert_alpha()
     bonus_rect = pygame.Rect(random.randint(10, WIDTH - bonus_size[0]), 0, *bonus_size)
-    bonus_speed = [0, 3]
+    bonus_speed = [4, 8]
     return [bonus, bonus_rect, bonus_speed]
 
 
@@ -77,7 +82,16 @@ while playing:
             bonuses.append(bonus_info)
 
     bg_X1 -= bg_move
-    main_display.blit(bg, (0, 0))
+    bg_X2 -= bg_move
+
+    if bg_X1 < -bg.get_width():
+        bg_X1 = bg.get_width()
+
+    if bg_X2 < -bg.get_width():
+        bg_X2 = bg.get_width()
+
+    main_display.blit(bg, (bg_X1, 0))
+    main_display.blit(bg, (bg_X2, 0))
 
     keys = pygame.key.get_pressed()
 
