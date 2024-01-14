@@ -1,6 +1,5 @@
 import random
 
-import sys
 import pygame
 from pygame.constants import QUIT, K_DOWN, K_UP, K_LEFT, K_RIGHT
 
@@ -26,14 +25,16 @@ bg_X2 = bg.get_width()
 bg_move = 3
 
 player_size = (20, 20)
-player = pygame.image.load("player.png").convert_alpha()  # pygame.Surface(player_size)
-# player.fill(COLOR_WHITE)
+player = pygame.image.load("1-1.png").convert_alpha()  # pygame.Surface(player_size)
 player_rect = player.get_rect()
 player_rect = pygame.Rect(100, HEIGHT / 2 - player.get_height() / 2, *player.get_size())
 player_move_down = [0, 4]
 player_move_up = [0, -4]
 player_move_right = [4, 0]
 player_move_left = [-4, 0]
+
+
+# Основний цикл гри
 
 
 def crate_enemy():
@@ -58,10 +59,51 @@ def create_bonus():
     return [bonus, bonus_rect, bonus_speed]
 
 
+class Player(pygame.sprite.Sprite):
+    def __init__(self, images, x, y, speed):
+        super().__init__()
+        self.images = images
+        self.image = self.images[0]
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.speed = speed
+        self.index = 0
+
+    def update(self):
+        keys = pygame.key.get_pressed()
+        if keys[K_DOWN] and self.rect.bottom < HEIGHT:
+            self.rect.y += self.speed
+        if keys[K_UP] and self.rect.top > 0:
+            self.rect.y -= self.speed
+        if keys[K_RIGHT] and self.rect.right < WIDTH:
+            self.rect.x += self.speed
+        if keys[K_LEFT] and self.rect.left > 0:
+            self.rect.x -= self.speed
+        # Зміна картинки гравця для анімації руху
+        self.index = (self.index + 1) % len(self.images)
+        self.image = self.images[self.index]
+
+
+# Завантаження картинок гравця
+player_images = [
+    pygame.image.load("1-1.png").convert_alpha(),
+    pygame.image.load("1-2.png").convert_alpha(),
+    pygame.image.load("1-3.png").convert_alpha(),
+    pygame.image.load("1-4.png").convert_alpha(),
+    pygame.image.load("1-5.png").convert_alpha(),
+]
+player = Player(player_images, 100, HEIGHT / 2 - player_images[0].get_height() / 2, 4)
+all_sprites = pygame.sprite.Group()
+all_sprites.add(player)
+
+# Таймер для зміни картинок гравця кожною секундою
+
+CHANGE_PLAYER_IMAGE = pygame.USEREVENT + 7
 CREATE_ENEMY = pygame.USEREVENT + 1
 CREATE_BONUS = pygame.USEREVENT + 2
 pygame.time.set_timer(CREATE_ENEMY, 1500)
 pygame.time.set_timer(CREATE_BONUS, 3000)
+pygame.time.set_timer(CHANGE_PLAYER_IMAGE, 1000)
 
 enemies = []
 bonuses = []
@@ -81,6 +123,15 @@ while playing:
         if event.type == CREATE_BONUS:
             bonus_info = create_bonus()
             bonuses.append(bonus_info)
+
+        if event.type == CHANGE_PLAYER_IMAGE:
+            player.update()
+
+    if bg_X1 < -bg.get_width():
+        bg_X1 = bg.get_width()
+
+    if bg_X2 < -bg.get_width():
+        bg_X2 = bg.get_width()
 
     bg_X1 -= bg_move
     bg_X2 -= bg_move
@@ -119,9 +170,13 @@ while playing:
             bonuses.pop(bonuses.index(bonus_info))
 
     main_display.blit(FONT.render(str(score), True, COLOR_BLACK), (WIDTH - 50, 20))
-    main_display.blit(player, player_rect)
+    # main_display.blit(player, player_rect)
 
-    pygame.display.flip()
+    # Оновлення та відображення гравця
+    main_display.blit(bg, (bg_X1, 0))
+    main_display.blit(bg, (bg_X2, 0))
+    all_sprites.update()
+    all_sprites.draw(main_display)
 
     print(len(enemies))
     print(len(bonuses))
